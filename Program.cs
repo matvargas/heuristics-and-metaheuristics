@@ -1,6 +1,6 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace heuristics_and_metaheuristics
 {
@@ -8,6 +8,35 @@ namespace heuristics_and_metaheuristics
     {
         private static string PARENT_FOLDER_NAME = @"heuristics-and-metaheuristics";
         private static string INSTANCES_FOLDER_NAME = @"heu_e_met_tsp_instances/EUC_2D/";
+
+        static Tuple<double, double> handleInstance(string instanceFile)
+        {
+            int dim = 0;
+            bool isEUC2D = false;
+            int headerLines = 6;
+            string[] lines = System.IO.File.ReadAllLines(instanceFile);
+
+            for (int i = 0; i < headerLines; i++)
+            {
+                if (lines[i].Contains("DIMENSION"))
+                {
+                    dim = int.Parse(Regex.Split(lines[i], @"\D+")[1]);
+                    Console.WriteLine(dim);
+                }
+                else if (lines[i].Contains("EDGE_WEIGHT_TYPE"))
+                {
+                    isEUC2D = lines[i].Contains("EUC_2D");
+                }
+            }
+
+            for (int i = headerLines; i < dim; i++)
+            {
+                Console.Write(Regex.Split(lines[i], @"\D+")[0], 
+                    Regex.Split(lines[i], @"\D+")[1], 
+                    Regex.Split(lines[i], @"\D+")[2]);
+            }
+            return null;
+        }
         
         static void Main(string[] args)
         {
@@ -30,7 +59,7 @@ namespace heuristics_and_metaheuristics
                 {
                     if (instanceFile.EndsWith(".tsp"))
                     {
-                        Console.WriteLine(instanceFile);
+                        var pair = handleInstance(instanceFile);
                     }
                 }
             }
