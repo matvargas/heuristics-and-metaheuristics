@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 
 namespace heuristics_and_metaheuristics
 {
@@ -10,8 +11,8 @@ namespace heuristics_and_metaheuristics
         
         static void Main(string[] args)
         {
-            string currPath = Directory.GetCurrentDirectory();
-            currPath = currPath.Substring(0, currPath.LastIndexOf(PARENT_FOLDER_NAME) + PARENT_FOLDER_NAME.Length + 1);
+            var currPath = Directory.GetCurrentDirectory();
+            currPath = currPath.Substring(0, currPath.LastIndexOf(PARENT_FOLDER_NAME) + PARENT_FOLDER_NAME.Length) + "/";
             Console.WriteLine("Project path: " + currPath);
 
             string instancesPath = currPath + INSTANCES_FOLDER_NAME;
@@ -24,10 +25,13 @@ namespace heuristics_and_metaheuristics
             }
             else
             {
-                string[] instanceFiles = Directory.GetFiles(instancesPath);
-                foreach (string s in instanceFiles)
+                var instanceFiles = Directory.GetFiles(instancesPath);
+                foreach (var instanceFile in instanceFiles)
                 {
-                    Console.WriteLine(s);
+                    if (instanceFile.EndsWith(".tsp"))
+                    {
+                        Console.WriteLine(instanceFile);
+                    }
                 }
             }
             
