@@ -9,16 +9,16 @@ namespace heuristics_and_metaheuristics
     class Program
     {
         private static string PARENT_FOLDER_NAME = @"heuristics-and-metaheuristics";
-        // private static string INSTANCES_FOLDER_NAME = @"heu_e_met_tsp_instances/EUC_2D/";
-        private static string INSTANCES_FOLDER_NAME = @"teste/";
+        private static string INSTANCES_FOLDER_NAME = @"heu_e_met_tsp_instances/EUC_2D/";
+        // private static string INSTANCES_FOLDER_NAME = @"teste/";
         static bool isEUC2D = false;
 
         static double calcLimit(double min, double max)
         {
-            return min + 0.001*(max - min);
+            return min + 0.01*(max - min);
         }
         
-        static double greedyRandomized(double[,] m)
+        static double greedyRandomized(double[,] m, int[] path)
         {
             int currentCity = 0;
             int visitedCount = 0;
@@ -27,11 +27,11 @@ namespace heuristics_and_metaheuristics
             double min;
             double limit;
             bool[] visited = new bool[m.GetLength(0)];
-            int[] path = new int[m.GetLength(0) + 1];
+            
 
             Random rdn = new Random();
             int start = rdn.Next() % m.GetLength(0);
-            Console.WriteLine(start);
+            // Console.WriteLine(start);
             currentCity = start;
 
             visited[currentCity] = true;
@@ -57,13 +57,13 @@ namespace heuristics_and_metaheuristics
                         max = m[currentCity, i];
                     }
                 }
-                Console.Write(min);
-                Console.Write(" - ");
-                Console.Write(max);
-                Console.Write(" - ");
+                // Console.Write(min);
+                // Console.Write(" - ");
+                // Console.Write(max);
+                // Console.Write(" - ");
                 limit = calcLimit(min, max);
-                Console.Write(limit);
-                Console.Write(" - ");
+                // Console.Write(limit);
+                // Console.Write(" - ");
                 for (int i = 0; i < m.GetLength(0); i++)
                 {
                     if (!visited[i] && i != currentCity)
@@ -79,9 +79,9 @@ namespace heuristics_and_metaheuristics
                 int rand = rdn.Next() % aux.Count;
                 path[visitedCount] = aux[rand];
                 total += m[currentCity, aux[rand]];
-                Console.Write(visitedCount);
-                Console.Write(" - ");
-                Console.WriteLine(total);
+                // Console.Write(visitedCount);
+                // Console.Write(" - ");
+                // Console.WriteLine(total);
                 currentCity = aux[rand];
                 visited[currentCity] = true;
                 visitedCount++;
@@ -93,18 +93,93 @@ namespace heuristics_and_metaheuristics
 
         }
 
-        static void GRASP(double[,]m)
+        static double GRASP(double[,]m)
         {
             double cgreedy = 0.0;
             double clocal = 0.0;
             double best = 0.0;
 
-            int imp = 0;
-            int threshold = 500;
-            double alpha = 0.001;
+            int[] path = new int[m.GetLength(0) + 1];
+            int[] newPath = new int[path.Length];
+            best = greedyRandomized(m, path);
+            int iter = 0;
+            
+            
+            while (iter < 500)
+            {
+                path.CopyTo(newPath, 0);
+                cgreedy = greedyRandomized(m, newPath);
+                clocal = search2OptTSP(m, newPath, cgreedy);
 
-            best = greedyRandomized(m);
+                if(clocal < best){
+                    path = newPath;
+                    best = clocal;
+                    iter = 0;
+                }
+                else
+                {
+                    iter++;
+                }
+            
+            }
+
             Console.WriteLine(best);
+            return best;
+        }
+        
+        static double search2OptTSP(double[,] m, int[] newPath, double initialCost){
+            double bestcost = initialCost;
+            double curcost = 0.0;
+            for (int i = 0; i < m.GetLength(0) - 1; i++){
+                for (int k = i + 1; k < m.GetLength(0); k++)
+                {
+                    int[] localPath = new int[newPath.Length];
+                    newPath.CopyTo(localPath, 0);
+                    
+                    reversePath(localPath, i, k);
+                    
+                    curcost = calculateTourCost(localPath, m);
+                    
+                    if(curcost < bestcost){
+                        bestcost = curcost;
+                        newPath = localPath;
+                    }
+                }
+            }
+            return bestcost;
+        }
+        
+        static double calculateTourCost(int[] path, double[,] m){
+            double totalcost = 0.0;
+            for (int i = 0; i < path.Length - 1; i++){ 
+                totalcost += m[path[i], path[i+1]];
+            }
+            return totalcost;
+        }
+        
+        static void reversePath(int[] path, int i, int k){
+            int swapaux = 0;
+            int ncities = path.Length - 1;
+            if (k < i)
+            {
+                int tmp = i;
+                i = k;
+                k = tmp;
+            }
+            if(i == 0){
+                swapaux = path[i];
+                path[i] = path[k];
+                path[ncities] = path[k];
+                path[k] = swapaux;
+                i++;
+                k--;
+            }
+            for (int index = i, revindex = k; index < revindex; index++, revindex--)
+            {
+                int tmp = path[index];
+                path[index] = path[revindex];
+                path[revindex] = tmp;
+            }
         }
         
         static double euc2d(Tuple<double, double> c1, Tuple<double, double> c2)
@@ -177,9 +252,10 @@ namespace heuristics_and_metaheuristics
             }
             return pairs;
         }
-        
+
         static void Main(string[] args)
         {
+
             var currPath = Directory.GetCurrentDirectory();
             currPath = currPath.Substring(0, currPath.LastIndexOf(PARENT_FOLDER_NAME) + PARENT_FOLDER_NAME.Length) + "/";
             Console.WriteLine("Project path: " + currPath);
@@ -201,13 +277,17 @@ namespace heuristics_and_metaheuristics
                     if (instanceFile.EndsWith(".tsp"))
                     {
                         pairs = handleInstance(instanceFile);
+                        var watch = System.Diagnostics.Stopwatch.StartNew();
+                        double[,]m = doMatrix(pairs);
+                        GRASP(m);
+                        watch.Stop();
+                        var elapsedMs = watch.Elapsed.TotalSeconds;
+                        Console.WriteLine(elapsedMs);
                     }
                 }
-            
-                double[,]m = doMatrix(pairs);
-                GRASP(m);
+                
             }
-            
+
         }
     }
 }
