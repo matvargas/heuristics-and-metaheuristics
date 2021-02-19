@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace heuristics_and_metaheuristics
@@ -8,20 +10,24 @@ namespace heuristics_and_metaheuristics
     {
         private static string PARENT_FOLDER_NAME = @"heuristics-and-metaheuristics";
         private static string INSTANCES_FOLDER_NAME = @"heu_e_met_tsp_instances/EUC_2D/";
+        // private static string INSTANCES_FOLDER_NAME = @"teste/";
+        static bool isEUC2D = false;
 
-        static Tuple<double, double> handleInstance(string instanceFile)
+        static List<Tuple<double, double>> handleInstance(string instanceFile)
         {
             int dim = 0;
-            bool isEUC2D = false;
             int headerLines = 6;
             string[] lines = System.IO.File.ReadAllLines(instanceFile);
+            List<Tuple<double, double>> pairs = new List<Tuple<double, double>>();
 
+            Console.WriteLine(lines[0]);
+            
             for (int i = 0; i < headerLines; i++)
             {
                 if (lines[i].Contains("DIMENSION"))
                 {
                     dim = int.Parse(Regex.Split(lines[i], @"\D+")[1]);
-                    Console.WriteLine(dim);
+                    // Console.WriteLine(dim);
                 }
                 else if (lines[i].Contains("EDGE_WEIGHT_TYPE"))
                 {
@@ -29,13 +35,22 @@ namespace heuristics_and_metaheuristics
                 }
             }
 
-            for (int i = headerLines; i < dim; i++)
+            // Console.WriteLine(headerLines);
+            
+            for (int i = headerLines; i < dim + headerLines; i++)
             {
-                Console.Write(Regex.Split(lines[i], @"\D+")[0], 
-                    Regex.Split(lines[i], @"\D+")[1], 
-                    Regex.Split(lines[i], @"\D+")[2]);
+                var dataLine = lines[i].Split(' ');
+                double [] tmp = new Double[3];
+                int j = 0;
+                foreach (var s in dataLine)
+                {
+                    if (s != "")
+                        tmp[j++] = Convert.ToDouble(s);
+                }
+
+                pairs.Add(new Tuple<double, double>(tmp[1], tmp[2]));
             }
-            return null;
+            return pairs;
         }
         
         static void Main(string[] args)
@@ -55,13 +70,15 @@ namespace heuristics_and_metaheuristics
             else
             {
                 var instanceFiles = Directory.GetFiles(instancesPath);
+                List<Tuple<double, double>> pairs = new List<Tuple<double, double>>();
                 foreach (var instanceFile in instanceFiles)
                 {
                     if (instanceFile.EndsWith(".tsp"))
                     {
-                        var pair = handleInstance(instanceFile);
+                        pairs = handleInstance(instanceFile);
                     }
                 }
+                Console.WriteLine(pairs);
             }
             
         }
