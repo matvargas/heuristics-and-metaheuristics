@@ -13,28 +13,83 @@ namespace heuristics_and_metaheuristics
         private static string INSTANCES_FOLDER_NAME = @"teste/";
         static bool isEUC2D = false;
 
-        static void greedyRandomized(double[,] m)
+        static double calcLimit(double min, double max)
         {
-            int r;
+            return min + 0.001*(max - min);
+        }
+        
+        static double greedyRandomized(double[,] m)
+        {
             int currentCity = 0;
             int visitedCount = 0;
             double total = 0.0;
-            double maxCost;
-            double minCost;
-            double threshold;
+            double max;
+            double min;
+            double limit;
             bool[] visited = new bool[m.GetLength(0)];
             int[] path = new int[m.GetLength(0) + 1];
 
-            Random rdn = new Random(); 
+            Random rdn = new Random();
             int start = rdn.Next() % m.GetLength(0);
+            Console.WriteLine(start);
             currentCity = start;
 
             visited[currentCity] = true;
             path[0] = currentCity;
             visitedCount++;
-            
-            
 
+            List<int> aux = new List<int>();
+
+            while (visitedCount < m.GetLength(0))
+            {
+                aux.Clear();
+                min = 99999999999.99999999999;
+                max = 0.0;
+                for (int i = 0; i < m.GetLength(0); i++)
+                {
+                    if (!visited[i] && m[currentCity, i] < min)
+                    {
+                        min = m[currentCity, i];
+                    }
+
+                    if (!visited[i] && m[currentCity, i] > max)
+                    {
+                        max = m[currentCity, i];
+                    }
+                }
+                Console.Write(min);
+                Console.Write(" - ");
+                Console.Write(max);
+                Console.Write(" - ");
+                limit = calcLimit(min, max);
+                Console.Write(limit);
+                Console.Write(" - ");
+                for (int i = 0; i < m.GetLength(0); i++)
+                {
+                    if (!visited[i] && i != currentCity)
+                    {
+                        if (m[currentCity, i] <= limit)
+                        {
+                            aux.Add(i);
+                        }
+                    }
+                }
+
+                rdn = new Random();
+                int rand = rdn.Next() % aux.Count;
+                path[visitedCount] = aux[rand];
+                total += m[currentCity, aux[rand]];
+                Console.Write(visitedCount);
+                Console.Write(" - ");
+                Console.WriteLine(total);
+                currentCity = aux[rand];
+                visited[currentCity] = true;
+                visitedCount++;
+
+            }
+            path[visitedCount] = start;
+            total += m[currentCity, start];
+            return total;
 
         }
 
@@ -48,7 +103,8 @@ namespace heuristics_and_metaheuristics
             int threshold = 500;
             double alpha = 0.001;
 
-            // best = greedyRandomized(m);
+            best = greedyRandomized(m);
+            Console.WriteLine(best);
         }
         
         static double euc2d(Tuple<double, double> c1, Tuple<double, double> c2)
