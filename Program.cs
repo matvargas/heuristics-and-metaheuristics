@@ -13,22 +13,60 @@ namespace heuristics_and_metaheuristics
         private static string INSTANCES_FOLDER_NAME = @"teste/";
         static bool isEUC2D = false;
 
-        static double euc_2d(Tuple<double, double> c1, Tuple<double, double> c2)
+        static void greedyRandomized(double[,] m)
         {
-            return Math.Round(Math.Sqrt((Math.Pow(c1.Item1 - c2.Item1, 2) + Math.Pow(c1.Item2 - c2.Item2, 2)) / 10.0));
+            int r;
+            int currentCity = 0;
+            int visitedCount = 0;
+            double total = 0.0;
+            double maxCost;
+            double minCost;
+            double threshold;
+            bool[] visited = new bool[m.GetLength(0)];
+            int[] path = new int[m.GetLength(0) + 1];
+
+            Random rdn = new Random(); 
+            int start = rdn.Next() % m.GetLength(0);
+            currentCity = start;
+
+            visited[currentCity] = true;
+            path[0] = currentCity;
+            visitedCount++;
+            
+            
+
+
+        }
+
+        static void GRASP(double[,]m)
+        {
+            double cgreedy = 0.0;
+            double clocal = 0.0;
+            double best = 0.0;
+
+            int imp = 0;
+            int threshold = 500;
+            double alpha = 0.001;
+
+            // best = greedyRandomized(m);
+        }
+        
+        static double euc2d(Tuple<double, double> c1, Tuple<double, double> c2)
+        {
+            return Math.Round(Math.Sqrt(Math.Pow((c1.Item1 - c2.Item1), 2) + Math.Pow((c1.Item2 - c2.Item2), 2)));
         }
         
         static double att(Tuple<double, double> c1, Tuple<double, double> c2)
         {
-            return Math.Ceiling(Math.Sqrt((Math.Pow(c1.Item1 - c2.Item1, 2) + Math.Pow(c1.Item2 - c2.Item2, 2)) / 10.0));
+            return Math.Ceiling(Math.Sqrt((Math.Pow((c1.Item1 - c2.Item1), 2) + Math.Pow((c1.Item2 - c2.Item2), 2)) / 10.0));
         }
         
         static double calcDist(Tuple<double, double> c1, Tuple<double, double> c2)
         {
-            return isEUC2D ? euc_2d(c1, c2) : att(c1, c2);
+            return isEUC2D ? euc2d(c1, c2) : att(c1, c2);
         }
         
-        static void doMatrix(List<Tuple<double, double>> pairs)
+        static double[,] doMatrix(List<Tuple<double, double>> pairs)
         {
             double[,]matrix = new double[pairs.Count, pairs.Count];
             for (int i = 0; i < pairs.Count - 1; i++)
@@ -40,6 +78,8 @@ namespace heuristics_and_metaheuristics
                     matrix[j, i] = matrix[i, j];
                 }
             }
+
+            return matrix;
         }
         
         static List<Tuple<double, double>> handleInstance(string instanceFile)
@@ -87,10 +127,10 @@ namespace heuristics_and_metaheuristics
             var currPath = Directory.GetCurrentDirectory();
             currPath = currPath.Substring(0, currPath.LastIndexOf(PARENT_FOLDER_NAME) + PARENT_FOLDER_NAME.Length) + "/";
             Console.WriteLine("Project path: " + currPath);
-
+            
             string instancesPath = currPath + INSTANCES_FOLDER_NAME;
             Console.WriteLine("Instances path: " + instancesPath);
-
+            
             if (!Directory.Exists(instancesPath))
             {
                 Console.WriteLine("ERROR: Instances could not be found on the specified path");
@@ -107,8 +147,9 @@ namespace heuristics_and_metaheuristics
                         pairs = handleInstance(instanceFile);
                     }
                 }
-
-                doMatrix(pairs);
+            
+                double[,]m = doMatrix(pairs);
+                GRASP(m);
             }
             
         }
