@@ -9,10 +9,39 @@ namespace heuristics_and_metaheuristics
     class Program
     {
         private static string PARENT_FOLDER_NAME = @"heuristics-and-metaheuristics";
-        private static string INSTANCES_FOLDER_NAME = @"heu_e_met_tsp_instances/EUC_2D/";
-        // private static string INSTANCES_FOLDER_NAME = @"teste/";
+        // private static string INSTANCES_FOLDER_NAME = @"heu_e_met_tsp_instances/EUC_2D/";
+        private static string INSTANCES_FOLDER_NAME = @"teste/";
         static bool isEUC2D = false;
 
+        static double euc_2d(Tuple<double, double> c1, Tuple<double, double> c2)
+        {
+            return Math.Round(Math.Sqrt((Math.Pow(c1.Item1 - c2.Item1, 2) + Math.Pow(c1.Item2 - c2.Item2, 2)) / 10.0));
+        }
+        
+        static double att(Tuple<double, double> c1, Tuple<double, double> c2)
+        {
+            return Math.Ceiling(Math.Sqrt((Math.Pow(c1.Item1 - c2.Item1, 2) + Math.Pow(c1.Item2 - c2.Item2, 2)) / 10.0));
+        }
+        
+        static double calcDist(Tuple<double, double> c1, Tuple<double, double> c2)
+        {
+            return isEUC2D ? euc_2d(c1, c2) : att(c1, c2);
+        }
+        
+        static void doMatrix(List<Tuple<double, double>> pairs)
+        {
+            double[,]matrix = new double[pairs.Count, pairs.Count];
+            for (int i = 0; i < pairs.Count - 1; i++)
+            {
+                matrix[i, i] = 0.0;
+                for (int j = i + 1; j < pairs.Count; j++)
+                {
+                    matrix[i, j] = calcDist(pairs[i], pairs[j]);
+                    matrix[j, i] = matrix[i, j];
+                }
+            }
+        }
+        
         static List<Tuple<double, double>> handleInstance(string instanceFile)
         {
             int dim = 0;
@@ -78,7 +107,8 @@ namespace heuristics_and_metaheuristics
                         pairs = handleInstance(instanceFile);
                     }
                 }
-                Console.WriteLine(pairs);
+
+                doMatrix(pairs);
             }
             
         }
